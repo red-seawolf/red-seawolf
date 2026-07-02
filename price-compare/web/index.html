@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TH Price Compare — Shopee &amp; Lazada</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>🛒 TH Price Compare</h1>
+      <p class="tagline">Search Shopee &amp; Lazada at once — compare by price and price&nbsp;per&nbsp;unit.</p>
+    </header>
+
+    <main>
+      <form id="search-form" class="search-row">
+        <input
+          id="q"
+          type="search"
+          name="q"
+          placeholder="Search a product, e.g. instant coffee, milk, shampoo…"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" id="search-btn">Search</button>
+      </form>
+
+      <section class="controls">
+        <fieldset class="sites">
+          <legend>Sites</legend>
+          <label><input type="checkbox" name="site" value="shopee" checked /> Shopee</label>
+          <label><input type="checkbox" name="site" value="lazada" checked /> Lazada</label>
+          <label><input type="checkbox" name="site" value="demo" /> Demo</label>
+        </fieldset>
+
+        <div class="control">
+          <label for="sort">Sort by</label>
+          <select id="sort">
+            <option value="relevance">Relevance</option>
+            <option value="price-asc">Price: low → high</option>
+            <option value="price-desc">Price: high → low</option>
+            <option value="ppu-asc">Price per unit: low → high</option>
+            <option value="ppu-desc">Price per unit: high → low</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label for="seller">Seller</label>
+          <select id="seller">
+            <option value="all">All sellers</option>
+            <option value="local">Local / domestic (Thailand)</option>
+            <option value="overseas">Overseas / international</option>
+          </select>
+        </div>
+      </section>
+
+      <div id="status" class="status" hidden></div>
+      <div id="sources" class="sources"></div>
+      <div id="results" class="results"></div>
+      <div id="empty" class="empty" hidden>No results. Try another keyword or enable more sites.</div>
+    </main>
+
+    <footer>
+      <p>
+        Aggregates public listings for comparison. Price&nbsp;per&nbsp;unit is derived from each
+        product title and is a best-effort estimate.
+      </p>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

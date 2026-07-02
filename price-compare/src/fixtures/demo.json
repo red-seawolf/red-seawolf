@@ -1,0 +1,98 @@
+[
+  {
+    "site": "shopee",
+    "id": "demo.1001",
+    "title": "Nescafe Red Cup Instant Coffee 200g x 3 packs",
+    "price": 289,
+    "image": "https://placehold.co/300x300?text=Coffee+3x200g",
+    "url": "https://shopee.co.th/product/demo/1001",
+    "seller": "Nestle Official Store",
+    "location": "Bangkok",
+    "sold": 4200,
+    "rating": 4.9
+  },
+  {
+    "site": "lazada",
+    "id": "demo.2001",
+    "title": "Nescafe Red Cup Instant Coffee 200 g",
+    "price": 105,
+    "image": "https://placehold.co/300x300?text=Coffee+200g",
+    "url": "https://www.lazada.co.th/products/demo-2001.html",
+    "seller": "NestleTH",
+    "location": "Nonthaburi",
+    "sold": 1800,
+    "rating": 4.8
+  },
+  {
+    "site": "shopee",
+    "id": "demo.1002",
+    "title": "Instant Coffee Sachet 1.8g x 50 pcs value pack",
+    "price": 159,
+    "image": "https://placehold.co/300x300?text=Coffee+50pcs",
+    "url": "https://shopee.co.th/product/demo/1002",
+    "seller": "CoffeeHub",
+    "location": "Overseas - China",
+    "sold": 900,
+    "rating": 4.5
+  },
+  {
+    "site": "lazada",
+    "id": "demo.2002",
+    "title": "Premium Arabica Ground Coffee 500g bag",
+    "price": 245,
+    "image": "https://placehold.co/300x300?text=Coffee+500g",
+    "url": "https://www.lazada.co.th/products/demo-2002.html",
+    "seller": "Chiang Mai Roasters",
+    "location": "Chiang Mai",
+    "sold": 640,
+    "rating": 5.0
+  },
+  {
+    "site": "shopee",
+    "id": "demo.1003",
+    "title": "UHT Milk 1L x 12 boxes carton",
+    "price": 399,
+    "image": "https://placehold.co/300x300?text=Milk+12x1L",
+    "url": "https://shopee.co.th/product/demo/1003",
+    "seller": "DairyFarm TH",
+    "location": "Ratchaburi",
+    "sold": 5100,
+    "rating": 4.9
+  },
+  {
+    "site": "lazada",
+    "id": "demo.2003",
+    "title": "UHT Milk 250ml x 24 pack",
+    "price": 219,
+    "image": "https://placehold.co/300x300?text=Milk+24x250ml",
+    "url": "https://www.lazada.co.th/products/demo-2003.html",
+    "seller": "MilkMart",
+    "location": "Overseas",
+    "sold": 300,
+    "rating": 4.2
+  },
+  {
+    "site": "shopee",
+    "id": "demo.1004",
+    "title": "Shampoo Anti-Dandruff 500 ml bottle",
+    "price": 189,
+    "image": "https://placehold.co/300x300?text=Shampoo+500ml",
+    "url": "https://shopee.co.th/product/demo/1004",
+    "seller": "HeadCare Official",
+    "location": "Samut Prakan",
+    "sold": 2700,
+    "rating": 4.7
+  },
+  {
+    "site": "lazada",
+    "id": "demo.2004",
+    "title": "Shampoo Anti-Dandruff 1L jumbo refill",
+    "price": 329,
+    "image": "https://placehold.co/300x300?text=Shampoo+1L",
+    "url": "https://www.lazada.co.th/products/demo-2004.html",
+    "seller": "BeautyDepot",
+    "location": "Bangkok",
+    "sold": 1500,
+    "rating": 4.6
+  }
+]
