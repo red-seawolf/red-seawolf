@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Multi-QR Extractor — Scan many QR codes from one photo</title>
+<title>Multi-QR Extractor (rev.2) — Scan 5–8 QR codes from one photo, or many photos at once</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230d1117'/%3E%3Cg fill='none' stroke='%2358a6ff' stroke-width='2'%3E%3Crect x='4' y='4' width='6' height='6' rx='1'/%3E%3Crect x='14' y='4' width='6' height='6' rx='1'/%3E%3Crect x='4' y='14' width='6' height='6' rx='1'/%3E%3Cpath d='M14 14h3v3M20 14v6M14 20h3'/%3E%3C/g%3E%3C/svg%3E" />
-<meta name="description" content="Upload a photo and extract every QR code in it at once. Works fully in your browser — no uploads to any server." />
+<meta name="description" content="Upload one or many photos and extract every QR code in them at once — tuned to reliably read 5–8 codes per photo. Works fully in your browser; no uploads to any server." />
 <style>
   :root {
     --bg: #0d1117;
@@ -38,12 +38,17 @@
     text-transform: uppercase; color: var(--muted);
   }
   .logo svg { width: 22px; height: 22px; }
+  .rev {
+    background: linear-gradient(90deg, #1f6feb, #56d364);
+    color: #fff; border-radius: 999px; padding: 1px 9px;
+    font-size: 11px; font-weight: 800; letter-spacing: .08em;
+  }
   h1 { font-size: clamp(26px, 5vw, 40px); margin: 12px 0 8px; line-height: 1.15; }
   h1 .grad {
     background: linear-gradient(90deg, #58a6ff, #79c0ff, #56d364);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .subtitle { color: var(--muted); max-width: 620px; margin: 0 auto; font-size: 16px; }
+  .subtitle { color: var(--muted); max-width: 640px; margin: 0 auto; font-size: 16px; }
 
   .dropzone {
     margin-top: 26px;
@@ -75,6 +80,29 @@
   button.btn.primary:hover { background: var(--accent); }
   button.btn:disabled { opacity: .5; cursor: not-allowed; }
 
+  /* ---- Photo queue (multi-photo) ---- */
+  .queue-wrap {
+    margin-top: 20px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
+  }
+  .queue-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .queue-head .ttl { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .queue { display: flex; gap: 12px; flex-wrap: wrap; }
+  .thumb {
+    position: relative; width: 92px; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 6px; text-align: center;
+  }
+  .thumb img { width: 100%; height: 64px; object-fit: cover; border-radius: 6px; display: block; background: #000; }
+  .thumb-name {
+    display: block; font-size: 10px; color: var(--muted); margin-top: 5px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .thumb-x {
+    position: absolute; top: -8px; right: -8px; width: 22px; height: 22px;
+    border-radius: 50%; border: 1px solid var(--border); background: var(--bad);
+    color: #fff; font-size: 12px; line-height: 1; cursor: pointer; display: grid; place-items: center;
+  }
+
   .status {
     margin-top: 18px; text-align: center; min-height: 22px;
     color: var(--muted); font-size: 14px;
@@ -98,12 +126,26 @@
     background: var(--accent-2); color: #fff; border-radius: 999px;
     padding: 2px 12px; font-size: 14px; font-weight: 700; margin-left: 8px;
   }
+  .count-badge.small { font-size: 12px; padding: 1px 10px; margin-left: 0; }
+  .count-badge.muted { background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ---- Per-photo result card ---- */
+  .photo-result {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); margin-bottom: 22px;
+  }
+  .photo-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .photo-name {
+    font-weight: 600; font-size: 14px; max-width: 70%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
   .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
   @media (min-width: 760px) { .grid { grid-template-columns: 1.05fr 1fr; } }
 
   .preview-card, .codes-card {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
   }
   .preview-wrap { position: relative; line-height: 0; border-radius: 10px; overflow: hidden; }
   .preview-wrap canvas { width: 100%; height: auto; display: block; }
@@ -111,7 +153,7 @@
 
   .code-item {
     border: 1px solid var(--border); border-radius: 10px;
-    padding: 12px; margin-bottom: 12px; background: var(--panel-2);
+    padding: 12px; margin-bottom: 12px; background: var(--panel);
     position: relative;
   }
   .code-item:last-child { margin-bottom: 0; }
@@ -137,9 +179,10 @@
   .mini:hover { color: var(--text); border-color: var(--accent); }
   .mini.copied { color: var(--good); border-color: var(--good); }
 
-  .export-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .export-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
   .empty { text-align: center; color: var(--muted); padding: 24px 0; }
+  .photo-error { color: var(--bad); font-size: 13px; }
 
   footer {
     margin-top: 50px; text-align: center; color: var(--muted); font-size: 13px;
@@ -162,24 +205,35 @@
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
         <rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7M14 21h3"/>
       </svg>
-      Multi-QR Extractor
+      Multi-QR Extractor <span class="rev">rev.2</span>
     </div>
-    <h1>Extract <span class="grad">every QR code</span><br/>from a single photo</h1>
-    <p class="subtitle">Drop in a picture that contains one or many QR codes. They're all decoded at once — right here in your browser. Nothing is uploaded anywhere.</p>
+    <h1>Extract <span class="grad">5–8 QR codes</span><br/>from one photo — or many photos at once</h1>
+    <p class="subtitle">Add one or several pictures, each packed with multiple QR codes. A multi-pass, tiled scan reliably pulls them all out — right here in your browser. Nothing is uploaded anywhere.</p>
     <div class="privacy"><span class="dot"></span> 100% on-device · works offline after first load</div>
   </header>
 
-  <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Upload an image">
+  <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Add images">
     <div class="icon">🖼️</div>
-    <div class="big">Drag &amp; drop an image here</div>
+    <div class="big">Drag &amp; drop one or more images here</div>
     <div class="small">or use the buttons below — PNG, JPG, WEBP, GIF, BMP</div>
     <div class="btn-row">
-      <label class="btn primary" for="fileInput">📂 Choose image</label>
+      <label class="btn primary" for="fileInput">📂 Choose images</label>
       <label class="btn" for="cameraInput">📷 Take photo</label>
       <button class="btn" id="pasteBtn" type="button">📋 Paste from clipboard</button>
     </div>
-    <input id="fileInput" type="file" accept="image/*" hidden />
+    <input id="fileInput" type="file" accept="image/*" multiple hidden />
     <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden />
+  </div>
+
+  <div id="queueWrap" class="queue-wrap" hidden>
+    <div class="queue-head">
+      <span class="ttl">Photos to scan <span id="queueCount" class="count-badge small muted">0</span></span>
+      <div class="export-row">
+        <button class="btn primary" id="scanBtn" type="button">🔍 Scan photos</button>
+        <button class="btn" id="clearBtn" type="button">🗑️ Clear</button>
+      </div>
+    </div>
+    <div id="queue" class="queue"></div>
   </div>
 
   <div id="status" class="status"></div>
@@ -191,19 +245,10 @@
         <button class="btn" id="copyAllBtn" type="button">📋 Copy all</button>
         <button class="btn" id="jsonBtn" type="button">⬇️ JSON</button>
         <button class="btn" id="csvBtn" type="button">⬇️ CSV</button>
-        <button class="btn" id="resetBtn" type="button">↺ New image</button>
+        <button class="btn" id="resetBtn" type="button">↺ Start over</button>
       </div>
     </div>
-    <div class="grid">
-      <div class="preview-card">
-        <p class="card-title">Source image (detected codes outlined)</p>
-        <div class="preview-wrap"><canvas id="canvas"></canvas></div>
-      </div>
-      <div class="codes-card">
-        <p class="card-title">Decoded values</p>
-        <div id="codeList"></div>
-      </div>
-    </div>
+    <div id="photoResults"></div>
   </section>
 
   <footer>
@@ -231,9 +276,13 @@
   const pasteBtn = $("pasteBtn");
   const statusEl = $("status");
   const results = $("results");
-  const canvas = $("canvas");
-  const codeList = $("codeList");
+  const photoResults = $("photoResults");
   const countBadge = $("countBadge");
+  const queueWrap = $("queueWrap");
+  const queueEl = $("queue");
+  const queueCount = $("queueCount");
+  const scanBtn = $("scanBtn");
+  const clearBtn = $("clearBtn");
 
   // Detect QR + most common 2D/1D formats, so a photo with mixed codes still works.
   const detector = new BarcodeDetector({
@@ -241,7 +290,12 @@
   });
 
   const palette = ["#2f81f7", "#3fb950", "#db61a2", "#e3b341", "#a371f7", "#f0883e", "#56d4dd", "#f85149"];
-  let lastResults = [];
+
+  // Photos waiting to be scanned + the results of the last scan.
+  let queue = [];          // { id, file, name, thumb }
+  let resultsData = [];    // { name, canvas, barcodes, error? }
+  let nextId = 1;
+  let scanning = false;
 
   function setStatus(msg, isErr = false, busy = false) {
     statusEl.className = "status" + (isErr ? " err" : "");
@@ -262,36 +316,120 @@
     return esc;
   }
 
-  async function loadImage(file) {
-    if (!file || !file.type.startsWith("image/")) {
-      throw new Error("That file isn't an image. Please choose a PNG, JPG, WEBP, GIF or BMP.");
-    }
-    const url = URL.createObjectURL(file);
-    try {
+  function loadImage(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith("image/")) {
+        reject(new Error("That file isn't an image. Please choose a PNG, JPG, WEBP, GIF or BMP."));
+        return;
+      }
+      const url = URL.createObjectURL(file);
       const img = new Image();
       img.decoding = "async";
-      await new Promise((res, rej) => {
-        img.onload = res;
-        img.onerror = () => rej(new Error("Could not read that image file."));
-        img.src = url;
-      });
-      return img;
-    } finally {
-      // Revoke after a tick so the image is fully decoded.
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      img.onload = () => { resolve(img); setTimeout(() => URL.revokeObjectURL(url), 4000); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not read that image file.")); };
+      img.src = url;
+    });
+  }
+
+  // --- Robust multi-QR detection -----------------------------------------
+  // A single full-image pass often misses some codes when 5–8 are packed in
+  // one photo (small/dense codes, perspective). We combine a full pass with
+  // overlapping tile passes (upscaling small tiles) and de-duplicate by value
+  // + position, so densely-packed sheets get read reliably.
+
+  function mapBarcode(b, offX, offY, scale) {
+    const pts = (b.cornerPoints || []).map((p) => ({ x: offX + p.x / scale, y: offY + p.y / scale }));
+    let bb = null;
+    if (b.boundingBox) {
+      bb = {
+        x: offX + b.boundingBox.x / scale,
+        y: offY + b.boundingBox.y / scale,
+        width: b.boundingBox.width / scale,
+        height: b.boundingBox.height / scale,
+      };
+    } else if (pts.length) {
+      const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+      const minx = Math.min(...xs), miny = Math.min(...ys);
+      bb = { x: minx, y: miny, width: Math.max(...xs) - minx, height: Math.max(...ys) - miny };
     }
+    return { rawValue: b.rawValue, format: b.format, cornerPoints: pts, boundingBox: bb };
   }
 
-  function drawImage(img) {
-    const ctx = canvas.getContext("2d");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    ctx.drawImage(img, 0, 0);
-    return ctx;
+  function centerOf(b) {
+    const bb = b.boundingBox;
+    if (bb) return { cx: bb.x + bb.width / 2, cy: bb.y + bb.height / 2 };
+    const p = b.cornerPoints && b.cornerPoints[0];
+    return { cx: p ? p.x : 0, cy: p ? p.y : 0 };
   }
 
-  function drawOverlays(ctx, barcodes) {
-    const scale = canvas.width / 1000; // line weight relative to image size
+  function tryAdd(b, collected, seen) {
+    const { cx, cy } = centerOf(b);
+    const bb = b.boundingBox;
+    const tol = bb ? Math.max(15, Math.min(bb.width, bb.height) * 0.5) : 25;
+    for (const s of seen) {
+      if (s.value === b.rawValue && Math.abs(s.cx - cx) < tol && Math.abs(s.cy - cy) < tol) return;
+    }
+    seen.push({ value: b.rawValue, cx, cy });
+    collected.push(b);
+  }
+
+  async function detectInRegion(srcCanvas, sx, sy, sw, sh, upscale) {
+    const tile = document.createElement("canvas");
+    tile.width = Math.max(1, Math.round(sw * upscale));
+    tile.height = Math.max(1, Math.round(sh * upscale));
+    const tctx = tile.getContext("2d");
+    tctx.imageSmoothingEnabled = true;
+    tctx.imageSmoothingQuality = "high";
+    tctx.drawImage(srcCanvas, sx, sy, sw, sh, 0, 0, tile.width, tile.height);
+    let codes = [];
+    try { codes = await detector.detect(tile); } catch { codes = []; }
+    return codes.map((b) => mapBarcode(b, sx, sy, upscale));
+  }
+
+  async function detectAll(srcCanvas, onProgress) {
+    const W = srcCanvas.width, H = srcCanvas.height;
+    const collected = [], seen = [];
+    const consider = (list) => { for (const b of list) tryAdd(b, collected, seen); };
+
+    // Pass 1 — whole image.
+    consider(await detectInRegion(srcCanvas, 0, 0, W, H, 1));
+    onProgress && onProgress();
+
+    // Passes 2+ — overlapping tiles (only worthwhile on reasonably large images).
+    if (W >= 500 && H >= 500) {
+      const cols = 3, rows = 3, ov = 0.18;
+      const tw = W / cols, th = H / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const sx = Math.max(0, c * tw - tw * ov);
+          const sy = Math.max(0, r * th - th * ov);
+          const ex = Math.min(W, (c + 1) * tw + tw * ov);
+          const ey = Math.min(H, (r + 1) * th + th * ov);
+          const sw = ex - sx, sh = ey - sy;
+          // Upscale smaller tiles so dense codes have enough pixels to decode.
+          const up = sw < 700 ? 2 : (sw < 1200 ? 1.5 : 1);
+          consider(await detectInRegion(srcCanvas, sx, sy, sw, sh, up));
+          onProgress && onProgress();
+        }
+      }
+    }
+    return collected;
+  }
+
+  function sortBarcodes(barcodes, height) {
+    // Top-to-bottom, left-to-right for stable, human-friendly numbering.
+    barcodes.sort((a, b) => {
+      const ay = a.boundingBox ? a.boundingBox.y : 0;
+      const by = b.boundingBox ? b.boundingBox.y : 0;
+      if (Math.abs(ay - by) > height * 0.05) return ay - by;
+      const ax = a.boundingBox ? a.boundingBox.x : 0;
+      const bx = b.boundingBox ? b.boundingBox.x : 0;
+      return ax - bx;
+    });
+  }
+
+  function drawOverlays(ctx, canvas, barcodes) {
+    const scale = canvas.width / 1000;
     const lw = Math.max(2, Math.round(4 * Math.max(1, scale)));
     barcodes.forEach((b, i) => {
       const color = palette[i % palette.length];
@@ -307,7 +445,6 @@
         ctx.fillStyle = color + "33";
         ctx.fill();
       }
-      // number badge
       const bx = b.boundingBox;
       const r = Math.max(14, 22 * Math.max(1, scale));
       const cx = (bx ? bx.x : pts[0].x) + r;
@@ -324,10 +461,10 @@
     });
   }
 
-  function renderCodes(barcodes) {
-    codeList.innerHTML = "";
+  function renderCodesInto(listEl, barcodes) {
+    listEl.innerHTML = "";
     if (!barcodes.length) {
-      codeList.innerHTML = '<div class="empty">No QR codes were found in this image.<br/>Try a sharper, well-lit photo where each code is fully visible.</div>';
+      listEl.innerHTML = '<div class="empty">No QR codes were found in this image.<br/>Try a sharper, well-lit photo where each code is fully visible.</div>';
       return;
     }
     barcodes.forEach((b, i) => {
@@ -345,8 +482,52 @@
         </div>`;
       const copyBtn = item.querySelector(".copy");
       copyBtn.addEventListener("click", () => copyText(b.rawValue, copyBtn));
-      codeList.appendChild(item);
+      listEl.appendChild(item);
     });
+  }
+
+  function renderPhotoResult(rd) {
+    const card = document.createElement("div");
+    card.className = "photo-result";
+
+    const head = document.createElement("div");
+    head.className = "photo-head";
+    const n = rd.barcodes.length;
+    head.innerHTML = `<span class="photo-name">📷 ${escapeHtml(rd.name)}</span>
+      <span class="count-badge small${n ? "" : " muted"}">${n} code${n !== 1 ? "s" : ""}</span>`;
+    card.appendChild(head);
+
+    if (rd.error) {
+      const e = document.createElement("div");
+      e.className = "photo-error";
+      e.textContent = "⚠️ " + rd.error;
+      card.appendChild(e);
+      photoResults.appendChild(card);
+      return;
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+
+    const pcard = document.createElement("div");
+    pcard.className = "preview-card";
+    pcard.innerHTML = '<p class="card-title">Source image (detected codes outlined)</p>';
+    const pw = document.createElement("div");
+    pw.className = "preview-wrap";
+    pw.appendChild(rd.canvas);
+    pcard.appendChild(pw);
+
+    const ccard = document.createElement("div");
+    ccard.className = "codes-card";
+    ccard.innerHTML = '<p class="card-title">Decoded values</p>';
+    const list = document.createElement("div");
+    renderCodesInto(list, rd.barcodes);
+    ccard.appendChild(list);
+
+    grid.appendChild(pcard);
+    grid.appendChild(ccard);
+    card.appendChild(grid);
+    photoResults.appendChild(card);
   }
 
   async function copyText(text, btn) {
@@ -372,112 +553,186 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  function allRows() {
+    const rows = [];
+    resultsData.forEach((rd) => {
+      rd.barcodes.forEach((b, i) =>
+        rows.push({ photo: rd.name, index: i + 1, format: b.format || "qr_code", value: b.rawValue }));
+    });
+    return rows;
+  }
+
   function toCSV(rows) {
-    const head = ["index", "format", "value"];
+    const head = ["photo", "index", "format", "value"];
     const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
     const lines = [head.join(",")];
-    rows.forEach((b, i) => lines.push([i + 1, b.format || "qr_code", esc(b.rawValue)].join(",")));
+    rows.forEach((r) => lines.push([esc(r.photo), r.index, esc(r.format), esc(r.value)].join(",")));
     return lines.join("\r\n");
   }
 
-  async function handleFile(file) {
-    try {
-      results.classList.remove("show");
-      setStatus("Reading image…", false, true);
-      const img = await loadImage(file);
-      const ctx = drawImage(img);
-      setStatus("Scanning for QR codes…", false, true);
+  // --- Photo queue -------------------------------------------------------
+  async function makeThumb(file) {
+    const img = await loadImage(file);
+    const max = 160;
+    const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    c.getContext("2d").drawImage(img, 0, 0, w, h);
+    return c.toDataURL("image/jpeg", 0.7);
+  }
 
-      let barcodes = await detector.detect(canvas);
-
-      // Sort top-to-bottom, left-to-right for stable numbering.
-      barcodes.sort((a, b) => {
-        const ay = a.boundingBox ? a.boundingBox.y : 0;
-        const by = b.boundingBox ? b.boundingBox.y : 0;
-        if (Math.abs(ay - by) > (canvas.height * 0.05)) return ay - by;
-        const ax = a.boundingBox ? a.boundingBox.x : 0;
-        const bx = b.boundingBox ? b.boundingBox.x : 0;
-        return ax - bx;
+  function renderQueue() {
+    queueEl.innerHTML = "";
+    queue.forEach((item) => {
+      const chip = document.createElement("div");
+      chip.className = "thumb";
+      chip.innerHTML = `
+        <img src="${item.thumb || ""}" alt="" />
+        <button class="thumb-x" type="button" title="Remove" data-id="${item.id}">✕</button>
+        <span class="thumb-name">${escapeHtml(item.name)}</span>`;
+      queueEl.appendChild(chip);
+    });
+    queueEl.querySelectorAll(".thumb-x").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        queue = queue.filter((q) => String(q.id) !== btn.dataset.id);
+        renderQueue();
       });
+    });
+    queueWrap.hidden = queue.length === 0;
+    queueCount.textContent = String(queue.length);
+    scanBtn.textContent = `🔍 Scan ${queue.length} photo${queue.length !== 1 ? "s" : ""}`;
+    scanBtn.disabled = queue.length === 0 || scanning;
+  }
 
-      lastResults = barcodes;
-      drawOverlays(ctx, barcodes);
-      renderCodes(barcodes);
-      countBadge.textContent = String(barcodes.length);
-      results.classList.add("show");
-
-      if (barcodes.length === 0) {
-        setStatus("No codes detected. Try a clearer image.", true);
-      } else {
-        setStatus(`Found ${barcodes.length} code${barcodes.length > 1 ? "s" : ""}. ✓`);
-      }
-      results.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (err) {
-      console.error(err);
-      setStatus(err.message || "Something went wrong while scanning.", true);
+  async function addFiles(fileList) {
+    const files = [...fileList].filter((f) => f && f.type && f.type.startsWith("image/"));
+    if (!files.length) { setStatus("Please add image files (PNG, JPG, WEBP, GIF, BMP).", true); return; }
+    for (const f of files) {
+      const item = { id: nextId++, file: f, name: f.name || `image-${nextId}.png`, thumb: "" };
+      queue.push(item);
+      try { item.thumb = await makeThumb(f); } catch { /* keep placeholder */ }
+      renderQueue();
     }
+    setStatus(`${queue.length} photo${queue.length !== 1 ? "s" : ""} ready — press “Scan”.`);
+  }
+
+  async function scanAll() {
+    if (!queue.length || scanning) return;
+    scanning = true;
+    scanBtn.disabled = true; clearBtn.disabled = true;
+    resultsData = [];
+    photoResults.innerHTML = "";
+    results.classList.add("show");
+    let total = 0;
+
+    for (let i = 0; i < queue.length; i++) {
+      const q = queue[i];
+      setStatus(`Scanning photo ${i + 1} of ${queue.length} — “${q.name}” …`, false, true);
+      try {
+        const img = await loadImage(q.file);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+
+        const barcodes = await detectAll(canvas);
+        sortBarcodes(barcodes, canvas.height);
+        drawOverlays(ctx, canvas, barcodes);
+
+        total += barcodes.length;
+        const rd = { name: q.name, canvas, barcodes };
+        resultsData.push(rd);
+        renderPhotoResult(rd);
+      } catch (err) {
+        console.error(err);
+        const rd = { name: q.name, canvas: null, barcodes: [], error: err.message || "Could not scan this image." };
+        resultsData.push(rd);
+        renderPhotoResult(rd);
+      }
+      // Yield so the UI can paint between photos.
+      await new Promise((r) => setTimeout(r, 0));
+    }
+
+    countBadge.textContent = String(total);
+    const photos = queue.length;
+    if (total === 0) {
+      setStatus(`No codes detected across ${photos} photo${photos !== 1 ? "s" : ""}. Try clearer images.`, true);
+    } else {
+      setStatus(`Found ${total} code${total !== 1 ? "s" : ""} across ${photos} photo${photos !== 1 ? "s" : ""}. ✓ Add more photos and scan again any time.`);
+    }
+    scanning = false;
+    clearBtn.disabled = false;
+    renderQueue();
+    results.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   // ---- Event wiring ----
-  fileInput.addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); fileInput.value = ""; });
-  cameraInput.addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); cameraInput.value = ""; });
+  fileInput.addEventListener("change", (e) => { if (e.target.files.length) addFiles(e.target.files); fileInput.value = ""; });
+  cameraInput.addEventListener("change", (e) => { if (e.target.files.length) addFiles(e.target.files); cameraInput.value = ""; });
 
-  dropzone.addEventListener("click", (e) => { if (e.target === dropzone || e.target.classList.contains("big") || e.target.classList.contains("small") || e.target.classList.contains("icon")) fileInput.click(); });
+  dropzone.addEventListener("click", (e) => {
+    if (e.target === dropzone || e.target.classList.contains("big") || e.target.classList.contains("small") || e.target.classList.contains("icon")) fileInput.click();
+  });
   dropzone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
 
   ["dragenter", "dragover"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.add("drag"); }));
   ["dragleave", "drop"].forEach((ev) => dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.remove("drag"); }));
-  dropzone.addEventListener("drop", (e) => {
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  });
+  dropzone.addEventListener("drop", (e) => { if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
 
-  // Paste from clipboard (image or screenshot)
   pasteBtn.addEventListener("click", async () => {
     try {
       const items = await navigator.clipboard.read();
+      const imgs = [];
       for (const item of items) {
         const type = item.types.find((t) => t.startsWith("image/"));
-        if (type) {
-          const blob = await item.getType(type);
-          handleFile(new File([blob], "pasted.png", { type }));
-          return;
-        }
+        if (type) { const blob = await item.getType(type); imgs.push(new File([blob], `pasted-${nextId}.png`, { type })); }
       }
-      setStatus("No image found on the clipboard.", true);
+      if (imgs.length) addFiles(imgs);
+      else setStatus("No image found on the clipboard.", true);
     } catch {
-      setStatus("Clipboard access was blocked. Use Choose image instead, or press Ctrl/Cmd+V.", true);
+      setStatus("Clipboard access was blocked. Use Choose images instead, or press Ctrl/Cmd+V.", true);
     }
   });
   window.addEventListener("paste", (e) => {
-    const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"));
-    if (item) handleFile(item.getAsFile());
+    const files = [...(e.clipboardData?.items || [])].filter((i) => i.type.startsWith("image/")).map((i) => i.getAsFile());
+    if (files.length) addFiles(files);
   });
+
+  scanBtn.addEventListener("click", scanAll);
+  clearBtn.addEventListener("click", () => { queue = []; renderQueue(); setStatus("Cleared. Add photos to begin."); });
 
   // Export / reset
   $("copyAllBtn").addEventListener("click", (e) => {
-    if (!lastResults.length) return;
-    copyText(lastResults.map((b) => b.rawValue).join("\n"), null);
+    const rows = allRows();
+    if (!rows.length) return;
+    copyText(rows.map((r) => r.value).join("\n"), null);
     const btn = e.currentTarget; const old = btn.innerHTML;
     btn.innerHTML = "✓ Copied"; setTimeout(() => (btn.innerHTML = old), 1500);
   });
   $("jsonBtn").addEventListener("click", () => {
-    if (!lastResults.length) return;
-    const data = lastResults.map((b, i) => ({ index: i + 1, format: b.format, value: b.rawValue }));
-    download("qr-codes.json", JSON.stringify(data, null, 2), "application/json");
+    const rows = allRows();
+    if (!rows.length) return;
+    download("qr-codes.json", JSON.stringify(rows, null, 2), "application/json");
   });
   $("csvBtn").addEventListener("click", () => {
-    if (!lastResults.length) return;
-    download("qr-codes.csv", toCSV(lastResults), "text/csv");
+    const rows = allRows();
+    if (!rows.length) return;
+    download("qr-codes.csv", toCSV(rows), "text/csv");
   });
   $("resetBtn").addEventListener("click", () => {
-    lastResults = [];
+    resultsData = [];
+    queue = [];
+    photoResults.innerHTML = "";
     results.classList.remove("show");
-    setStatus("");
+    renderQueue();
+    setStatus("Ready — add one or more photos to begin.");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  setStatus("Ready — drop or choose a photo to begin.");
+  setStatus("Ready — add one or more photos to begin.");
 </script>
 </body>
 </html>
