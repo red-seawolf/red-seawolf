@@ -22,8 +22,31 @@ touching the rest of the app.
 - **Per-site status** — the UI shows which sources returned data and which were
   blocked, so a block on one site never hides the others.
 - **Pluggable adapters** — add a new marketplace by dropping in one file.
+- **Runs as a web app** — installable PWA served from GitHub Pages, no server
+  needed for demo search and marketplace deep links; pair it with a self-hosted
+  backend for live merged results.
 
-## Quick start
+## Use as a web app (no install)
+
+Once GitHub Pages is enabled for this repository, the app is served at:
+
+**`https://red-seawolf.github.io/red-seawolf/price-compare/`**
+
+It is a **PWA**: your browser will offer *Add to Home Screen / Install*, and it
+keeps working offline after the first load. Without a backend it can't scrape
+the marketplaces (Shopee/Lazada block in-browser scraping via CORS and bot
+defenses), so in pure web-app mode:
+
+- **Demo** search runs **entirely in your browser** — the same fixtures and the
+  same `normalize.js` (price-per-unit, seller origin) the server uses.
+- **Shopee / Lazada** searches become **direct marketplace links**, carrying
+  your keyword and price sort straight to shopee.co.th / lazada.co.th.
+- **Connect a backend** (⚙ panel at the bottom): run the server below on any
+  machine you control, enter its URL, and live merged Shopee+Lazada results —
+  with price-per-unit and seller filters — flow into the web app. The server
+  sends CORS headers so this works cross-origin.
+
+## Self-host the full version
 
 ```bash
 cd price-compare
@@ -32,8 +55,10 @@ npm start
 # open http://localhost:3000
 ```
 
-Try the pipeline with **no network** by ticking the **Demo** site (bundled
-fixture data) — useful for development or when the marketplaces are unreachable.
+Self-hosted, the same UI is served by the Node server and live scraping works
+out of the box — no configuration needed. Try the pipeline with **no network**
+by ticking the **Demo** site (bundled fixture data) — useful for development or
+when the marketplaces are unreachable.
 
 ## How it works
 

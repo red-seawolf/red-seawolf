@@ -12,6 +12,22 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(join(__dirname, '..', 'web')));
 
+// The browser app imports the shared normalize module and demo fixtures via
+// relative URLs (../src/…) so the exact same files work when the repo is served
+// statically (e.g. GitHub Pages). Expose just those two paths here.
+app.get('/src/normalize.js', (_req, res) => res.sendFile(join(__dirname, 'normalize.js')));
+app.get('/src/fixtures/demo.json', (_req, res) => res.sendFile(join(__dirname, 'fixtures', 'demo.json')));
+
+// CORS: allow the statically-hosted web app (e.g. GitHub Pages) to use this
+// server as its live-search backend.
+app.use('/api', (req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, sites: listAdapters() });
 });

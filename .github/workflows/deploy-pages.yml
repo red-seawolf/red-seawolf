@@ -1,4 +1,4 @@
-name: Deploy QR Extractor to GitHub Pages
+name: Deploy web apps to GitHub Pages
 
 on:
   push:
