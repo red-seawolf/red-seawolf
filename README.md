@@ -77,6 +77,16 @@ at once and compare by price and **price per unit**. On GitHub Pages it runs at
 PWA (demo search + marketplace deep links), and it can connect to a
 [self-hosted backend](price-compare/README.md) for live scraped results.
 
+## 📊 Also in this repo: หวย — สถิติย้อนหลัง & วิเคราะห์
+
+A Thai Government Lottery **history analytics** app lives at
+[`lotto-history/`](lotto-history/README.md) — frequency heatmaps, hot/cold/overdue
+numbers, digit-position and trend analysis, a number checker, and a searchable draw
+archive. On GitHub Pages it runs at
+`https://red-seawolf.github.io/red-seawolf/lotto-history/`. Real draw results are
+kept up to date automatically by a scheduled GitHub Actions workflow
+(`.github/workflows/update-lotto-data.yml`).
+
 ---
 
 QR Code is a registered trademark of DENSO WAVE INCORPORATED.
