@@ -69,6 +69,14 @@ A workflow at `.github/workflows/deploy-pages.yml` publishes the site automatica
 
 All decoding happens locally in your browser using WebAssembly. The image never leaves your device.
 
+## 🛒 Also in this repo: TH Price Compare
+
+A second web app lives at [`price-compare/`](price-compare/) — search Shopee & Lazada Thailand
+at once and compare by price and **price per unit**. On GitHub Pages it runs at
+`https://red-seawolf.github.io/red-seawolf/price-compare/` as an installable, offline-capable
+PWA (demo search + marketplace deep links), and it can connect to a
+[self-hosted backend](price-compare/README.md) for live scraped results.
+
 ---
 
 QR Code is a registered trademark of DENSO WAVE INCORPORATED.
