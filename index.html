@@ -170,6 +170,26 @@
     padding: 10px; max-height: 180px; overflow: auto;
   }
   .code-val a { color: var(--accent); }
+  .code-tag {
+    margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase; color: #56d364;
+    border: 1px solid #2ea04366; background: #2ea04322;
+    padding: 1px 8px; border-radius: 999px;
+  }
+  .code-val.code-main {
+    font-size: 15px; font-weight: 700; color: #7ee787; letter-spacing: .02em;
+    border-color: #2ea04366; background: #0e1a12;
+  }
+  .raw-details { margin-top: 10px; }
+  .raw-details summary {
+    cursor: pointer; font-size: 12px; color: var(--muted);
+    list-style: none; user-select: none; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .raw-details summary::-webkit-details-marker { display: none; }
+  .raw-details summary::before { content: "▸"; font-size: 10px; }
+  .raw-details[open] summary::before { content: "▾"; }
+  .raw-details summary:hover { color: var(--text); }
+  .raw-details .code-val.raw { margin-top: 8px; font-size: 12px; }
   .code-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .mini {
     font-size: 12px; padding: 5px 10px; border-radius: 7px;
@@ -205,10 +225,10 @@
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
         <rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7M14 21h3"/>
       </svg>
-      Multi-QR Extractor <span class="rev">rev.2</span>
+      Multi-QR Extractor <span class="rev">rev.3</span>
     </div>
-    <h1>Extract <span class="grad">5–8 QR codes</span><br/>from one photo — or many photos at once</h1>
-    <p class="subtitle">Add one or several pictures, each packed with multiple QR codes. A multi-pass, tiled scan reliably pulls them all out — right here in your browser. Nothing is uploaded anywhere.</p>
+    <h1>Extract <span class="grad">the code</span> from every<br/>QR in one photo — or many at once</h1>
+    <p class="subtitle">Add one or several pictures, each packed with multiple QR codes. A multi-pass, tiled scan pulls them all out and — when a QR wraps a code inside a link (e.g. a LINE URL) — shows the bare code, ready to copy. All in your browser; nothing is uploaded.</p>
     <div class="privacy"><span class="dot"></span> 100% on-device · works offline after first load</div>
   </header>
 
@@ -242,7 +262,7 @@
     <div class="summary">
       <h2>Detected codes <span id="countBadge" class="count-badge">0</span></h2>
       <div class="export-row">
-        <button class="btn" id="copyAllBtn" type="button">📋 Copy all</button>
+        <button class="btn" id="copyAllBtn" type="button">📋 Copy codes</button>
         <button class="btn" id="jsonBtn" type="button">⬇️ JSON</button>
         <button class="btn" id="csvBtn" type="button">⬇️ CSV</button>
         <button class="btn" id="resetBtn" type="button">↺ Start over</button>
@@ -315,6 +335,37 @@
     }
     return esc;
   }
+
+  // Many QR codes wrap the real payload inside a URL. This pulls out the bare
+  // code so it's easy to read/copy on its own. Returns null when the raw value
+  // has no wrapper to strip (the raw value already IS the code).
+  function extractCode(raw) {
+    const v = (raw || "").trim();
+    if (!v) return null;
+
+    // LINE official-account message links carry the code in the query string:
+    //   https://line.me/R/oaMessage/%40viffc/?397GTN1P9FVM04KHMNREKFY8  ->  397GTN1P9FVM04KHMNREKFY8
+    const line = v.match(/line\.me\/R\/oaMessage\/[^?]*\?([^&#\s]+)/i);
+    if (line && line[1]) {
+      try { return decodeURIComponent(line[1]); } catch { return line[1]; }
+    }
+
+    // Generic: a URL whose query string is a single bare token (no key=value)
+    // — that token is almost always the code itself.
+    try {
+      const u = new URL(v);
+      const q = u.search.replace(/^\?/, "");
+      if (q && !/[=&]/.test(q)) {
+        try { return decodeURIComponent(q); } catch { return q; }
+      }
+    } catch { /* not a URL — nothing to extract */ }
+
+    return null;
+  }
+
+  // The value to treat as "the code" for display/copy/export — the extracted
+  // token when there is one, otherwise the raw scanned value.
+  const codeOf = (b) => extractCode(b.rawValue) || b.rawValue;
 
   function loadImage(file) {
     return new Promise((resolve, reject) => {
@@ -469,9 +520,36 @@
     }
     barcodes.forEach((b, i) => {
       const color = palette[i % palette.length];
+      const code = extractCode(b.rawValue);
       const item = document.createElement("div");
       item.className = "code-item";
-      item.innerHTML = `
+
+      if (code) {
+        // The raw QR value is a URL wrapping a code — show the code up front,
+        // with the full scanned URL tucked into a details toggle.
+        item.innerHTML = `
+        <div class="code-head">
+          <span class="pill" style="background:${color}">${i + 1}</span>
+          <span class="code-fmt">${escapeHtml(b.format || "qr_code")}</span>
+          <span class="code-tag">code</span>
+        </div>
+        <div class="code-val code-main">${escapeHtml(code)}</div>
+        <div class="code-actions">
+          <button class="mini copy-code" type="button">📋 Copy code</button>
+        </div>
+        <details class="raw-details">
+          <summary>Show full QR value</summary>
+          <div class="code-val raw">${linkify(b.rawValue)}</div>
+          <div class="code-actions">
+            <button class="mini copy-raw" type="button">📋 Copy full value</button>
+          </div>
+        </details>`;
+        const codeBtn = item.querySelector(".copy-code");
+        codeBtn.addEventListener("click", () => copyText(code, codeBtn));
+        const rawBtn = item.querySelector(".copy-raw");
+        rawBtn.addEventListener("click", () => copyText(b.rawValue, rawBtn));
+      } else {
+        item.innerHTML = `
         <div class="code-head">
           <span class="pill" style="background:${color}">${i + 1}</span>
           <span class="code-fmt">${escapeHtml(b.format || "qr_code")}</span>
@@ -480,8 +558,9 @@
         <div class="code-actions">
           <button class="mini copy" type="button">📋 Copy</button>
         </div>`;
-      const copyBtn = item.querySelector(".copy");
-      copyBtn.addEventListener("click", () => copyText(b.rawValue, copyBtn));
+        const copyBtn = item.querySelector(".copy");
+        copyBtn.addEventListener("click", () => copyText(b.rawValue, copyBtn));
+      }
       listEl.appendChild(item);
     });
   }
@@ -557,16 +636,16 @@
     const rows = [];
     resultsData.forEach((rd) => {
       rd.barcodes.forEach((b, i) =>
-        rows.push({ photo: rd.name, index: i + 1, format: b.format || "qr_code", value: b.rawValue }));
+        rows.push({ photo: rd.name, index: i + 1, format: b.format || "qr_code", code: codeOf(b), value: b.rawValue }));
     });
     return rows;
   }
 
   function toCSV(rows) {
-    const head = ["photo", "index", "format", "value"];
+    const head = ["photo", "index", "format", "code", "value"];
     const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
     const lines = [head.join(",")];
-    rows.forEach((r) => lines.push([esc(r.photo), r.index, esc(r.format), esc(r.value)].join(",")));
+    rows.forEach((r) => lines.push([esc(r.photo), r.index, esc(r.format), esc(r.code), esc(r.value)].join(",")));
     return lines.join("\r\n");
   }
 
@@ -708,7 +787,8 @@
   $("copyAllBtn").addEventListener("click", (e) => {
     const rows = allRows();
     if (!rows.length) return;
-    copyText(rows.map((r) => r.value).join("\n"), null);
+    // Copy the extracted codes — that's the payload people actually want.
+    copyText(rows.map((r) => r.code).join("\n"), null);
     const btn = e.currentTarget; const old = btn.innerHTML;
     btn.innerHTML = "✓ Copied"; setTimeout(() => (btn.innerHTML = old), 1500);
   });

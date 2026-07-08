@@ -1,11 +1,23 @@
-# 📷 Multi-QR Extractor — rev.2
+# 📷 Multi-QR Extractor — rev.3
 
 A privacy-first web app that **extracts every QR code from a photo** — even when one picture is
-packed with many codes — and now **scans several photos in one batch**. Everything runs in your
-browser; no image is ever uploaded to a server.
+packed with many codes — **scans several photos in one batch**, and now **pulls the bare code out
+of QR codes that wrap it inside a link**. Everything runs in your browser; no image is ever
+uploaded to a server.
 
 👉 **Live app:** once GitHub Pages is enabled, it will be available at
 `https://red-seawolf.github.io/red-seawolf/`
+
+## 🆕 What's new in rev.3
+
+- **Code extraction.** Many QR codes don't contain a plain code — they wrap it inside a URL. For
+  example a LINE messaging QR encodes `https://line.me/R/oaMessage/%40viffc/?397GTN1P9FVM04KHMNREKFY8`,
+  where the code you actually want is `397GTN1P9FVM04KHMNREKFY8`. The app now detects this pattern
+  (and the general case of a URL whose query is a single bare token), shows the **bare code** up
+  front with a **Copy code** button, and keeps the full scanned URL behind a “Show full QR value”
+  toggle.
+- **Exports include the code.** “Copy codes” copies the extracted codes (one per line); JSON and
+  CSV now carry both a `code` and the original `value` column.
 
 ## 🆕 What's new in rev.2
 
