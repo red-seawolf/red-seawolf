@@ -5,8 +5,7 @@ packed with many codes — **scans several photos in one batch**, and now **pull
 of QR codes that wrap it inside a link**. Everything runs in your browser; no image is ever
 uploaded to a server.
 
-👉 **Live app:** once GitHub Pages is enabled, it will be available at
-`https://red-seawolf.github.io/red-seawolf/`
+👉 **Live app:** https://red-seawolf.github.io/red-seawolf/
 
 ## 🆕 What's new in rev.3
 
@@ -57,7 +56,7 @@ its WebAssembly binary are vendored in `vendor/`, so it loads with no CDN and wo
 
 ## 🚀 Run locally
 
-Because it loads an ES module from a CDN, open it through any static server (not `file://`):
+Because it loads ES modules, open it through any static server (not `file://`):
 
 ```bash
 # Python
@@ -70,12 +69,12 @@ npx serve .
 
 ## 🌐 Deploy (GitHub Pages)
 
-A workflow at `.github/workflows/deploy-pages.yml` publishes the site automatically.
+The site is published straight from the `main` branch — no build step, no workflow:
 
-1. Merge this branch into `main`.
-2. In the repository, go to **Settings → Pages → Build and deployment** and set
-   **Source = GitHub Actions**.
-3. Every push to `main` then deploys the latest version.
+- **Settings → Pages → Build and deployment → Source = “Deploy from a branch”**,
+  branch `main`, folder `/ (root)`.
+- Every push to `main` republishes the site automatically.
+- A `.nojekyll` file at the root makes Pages serve the `vendor/` assets untouched.
 
 ## 🔒 Privacy
 
